@@ -5,15 +5,20 @@
 % -Load in the raw data ('Traces.edf')
 % -Add channel locations
 % -Remove the DC offset
-% -Save the new data set (e.g. 's1_step1.set')
+% -Save the data (e.g. 's1_step1.set')
 
-% -Load in the saved data set (e.g. 's1_step1.set')
+% -Load in the data from previous loop (e.g. 's1_step1.set')
+% -Remove unnecessary channels
+% -Check that the channel order is consistent across data sets
+% -Save the data (e.g. 's1_step1_chan.set')
+
+% -Load in the data from previous loop (e.g. 's1_step1_chan.set')
 % -Highpass filter
-% -Save the filtered data (e.g. 's1_step1_hpf.set')
+% -Save the data (e.g. 's1_step1_chan_hpf.set')
 
 % Becky Gilbert, Oct 2014
 
-% Define subject set - Gareth, these names are insane...
+% Define subject set - these names are insane...
 subjects = {'02RFS_06ece715-ff14-42c2-b216-2f56d2e4a73d',...
     '05RFS_db0155a0-facb-4a13-824c-5e63c3b95f7d',...
     '08RFS_6d3104d3-4f18-41b0-9725-fc82ef5344a1',...
@@ -102,9 +107,14 @@ for s = 1:nSubj
     
     fprintf('\n\n**** Subject %d: %d channels in modified data set ****\n\n', s, EEG.nbchan);
     
+    % Save new data set
+    fprintf('\n\n\n**** Subject %d: Saving data set ****\n\n\n', s);
+    EEG.setname = [EEG.setname '_chans'];
+    [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 0,'setname', [EEG.setname '.set'], 'gui', 'off');
 end
 
 
+% Highpass filter at .04 Hz
 for s = 1:nSubj
     
     sname = ['s' s '_step1_chans.set'];
@@ -113,11 +123,11 @@ for s = 1:nSubj
     EEG = pop_loadset('filename', sname);
     
     % Filter the continuous data (to avoid boundary artifacts)
-    fprintf('\n\n\n**** Subject %d: Creating eventlist ****\n\n\n', s);
-    EEG = pop_eegfilt(EEG, 0.1, 0, [], [0], 0, 0, 'fir1', 0);
+    fprintf('\n\n**** Subject %d: Creating eventlist ****\n\n', s);
+    EEG = pop_eegfilt(EEG, 0.04, 0, [], [0], 0, 0, 'fir1', 0);
     
     % Save new data set
-    fprintf('\n\n\n**** Subject %s: Saving data set ****\n\n\n', subjects{s});
+    fprintf('\n\n**** Subject %d: Saving data set ****\n\n', s);
     EEG.setname = [EEG.setname '_hpf'];
     [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 0,'setname', [EEG.setname '.set'], 'gui', 'off');
     
