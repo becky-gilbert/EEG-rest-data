@@ -18,6 +18,7 @@
 
 % Becky Gilbert, Oct 2014
 
+
 % Define subject set - these names are insane...
 subjects = {'02RFS_06ece715-ff14-42c2-b216-2f56d2e4a73d',...
     '05RFS_db0155a0-facb-4a13-824c-5e63c3b95f7d',...
@@ -29,7 +30,7 @@ subjects = {'02RFS_06ece715-ff14-42c2-b216-2f56d2e4a73d',...
     '23RFS_b5b6158f-5b32-4b2a-a2c4-637b15ef4816'};
 nSubj = length(subjects);
 
-% Path to folder containing the data files for all subjects
+% Set paths to folder containing the data files and folder to save output data
 filePathIn = '/home/rebeccagilbert/Documents/EEG_data_rest/Rest_study/';
 filePathOut = '/home/rebeccagilbert/Documents/EEG_data_rest/Rest-data-analysis/EEG-rest-data/';
 
@@ -114,7 +115,8 @@ for s = 1:nSubj
 end
 
 
-% Highpass filter at .04 Hz
+% Highpass filter at .04 Hz (what value do we want?)
+highpassFilterValue = 0.04;
 for s = 1:nSubj
     
     sname = ['s' s '_step1_chans.set'];
@@ -124,7 +126,7 @@ for s = 1:nSubj
     
     % Filter the continuous data (to avoid boundary artifacts)
     fprintf('\n\n**** Subject %d: Creating eventlist ****\n\n', s);
-    EEG = pop_eegfilt(EEG, 0.04, 0, [], [0], 0, 0, 'fir1', 0);
+    EEG = pop_eegfilt(EEG, highpassFilterValue, 0, [], [0], 0, 0, 'fir1', 0);
     
     % Save new data set
     fprintf('\n\n**** Subject %d: Saving data set ****\n\n', s);
