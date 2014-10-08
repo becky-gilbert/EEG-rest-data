@@ -25,13 +25,13 @@ subjects = {'02RFS_06ece715-ff14-42c2-b216-2f56d2e4a73d',...
 nSubj = length(subjects);
 
 % Path to folder containing the data files for all subjects
-filePathIn = 'home/rebeccagilbert/Documents/EEG_data_rest/Rest_study/';
+filePathIn = '/home/rebeccagilbert/Documents/EEG_data_rest/Rest_study/';
 filePathOut = '/home/rebeccagilbert/Documents/EEG_data_rest/Rest-data-analysis/EEG-rest-data/';
 
 
 for s = 1:nSubj
     
-    fprintf('\n****** Processing subject number %d ******\n\n', s);
+    fprintf('\n\n****** Processing subject number %d ******\n\n', s);
     
     % Get current subject file
     sname = [filePathIn subjects{s} '/Traces.edf'];
@@ -39,26 +39,26 @@ for s = 1:nSubj
     if exist(sname, 'file') <= 0
         
         fprintf('\n *** WARNING: Subject %d does not exist *** \n', s);
-        fprintf('\n *** Skip all processing for this subject *** \n\n');
+        fprintf('\n *** Skip all processing for this subject *** \n');
         
     else
         
         % Load raw edf data
-        fprintf('\n\n\n**** Subject number %d: Loading dataset ****\n\n\n', s);
+        fprintf('\n\n**** Subject number %d: Loading dataset ****\n\n', s);
         EEG = pop_biosig(sname);
         [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 0, 'setname', ['s' num2str(s)], 'gui', 'off');
         EEG = eeg_checkset(EEG);
         EEG = eeg_checkset(EEG);
         
         % Add channel locations
-        fprintf('\n\n\n**** Subject number %d: Adding channel location info ****\n\n\n', s);
+        fprintf('\n\n**** Subject number %d: Adding channel location info ****\n\n', s);
         EEG = pop_chanedit(EEG, 'lookup','/home/rebeccagilbert/bin/eeglab11_0_4_3b/plugins/dipfit2.2/standard_BESA/standard-10-5-cap385.elp');
         EEG = eeg_checkset(EEG);
         EEG = eeg_checkset(EEG);
         [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
         
         % Create eventlist
-        %fprintf('\n\n\n**** Subject %s: Creating eventlist ****\n\n\n', subjects{s});
+        %fprintf('\n\n**** Subject %s: Creating eventlist ****\n\n', subjects{s});
         %EEG = pop_editeventlist(EEG, [filePath 'eventEquationList.txt'], [filePath 's' subjects{s} '_eventlist.txt'], {'boundary'}, {-99});
         
         % Remove DC offset - empty brackets indicates all times/points
@@ -68,7 +68,7 @@ for s = 1:nSubj
         [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
         
         % Save new data set
-        fprintf('\n\n\n**** Subject %s: Saving data set ****\n\n\n', subjects{s});
+        fprintf('\n\n**** Subject %d: Saving data set ****\n\n', s);
         EEG.setname = [EEG.setname '_step1'];
         EEG = pop_saveset(EEG, 'filename', [EEG.setname '.set'], 'filepath', filePathOut);
         [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
@@ -78,12 +78,42 @@ for s = 1:nSubj
         
     end
 end
-fprintf('\n\n\n**** FINISHED ****\n\n\n');
+fprintf('\n\n**** FINISHED ****\n\n');
+
+
+% Remove non-EEG channels from the data and check channel order
+
+chansToKeep = {'E1', 'E2', 'M1', 'C3', 'C4', 'M2', 'O1', 'O2', 'F3', 'F4'};
+chansToRemove = {'ChinR', 'ChinL', 'Light_CU', 'Gravity X', 'Gravity Y', 'Activity_CU', 'Elevation_CU'};
+
+for s = 1:nSubj
+    
+    sname = ['s' s '_step1.set'];
+    
+    fprintf('\n\n**** Subject %d: Loading dataset ****\n\n', s);
+    EEG = pop_loadset('filename', sname);
+    
+    fprintf('\n\n**** Subject %d: %d channels in original data set ****\n\n', s, EEG.nbchan);
+    
+    % Get channel numbers and labels
+    chanLocsCell = squeeze(struct2cell(EEG.chanlocs));
+    chanLabels = [chanLocsCell(1,1:end)]';
+    % STOPPED HERE 
+    
+    fprintf('\n\n**** Subject %d: %d channels in modified data set ****\n\n', s, EEG.nbchan);
+    
+end
 
 
 for s = 1:nSubj
     
+    sname = ['s' s '_step1_chans.set'];
+    
+    fprintf('\n\n**** Subject %d: Loading dataset ****\n\n', s);
+    EEG = pop_loadset('filename', sname);
+    
     % Filter the continuous data (to avoid boundary artifacts)
+    fprintf('\n\n\n**** Subject %d: Creating eventlist ****\n\n\n', s);
     EEG = pop_eegfilt(EEG, 0.1, 0, [], [0], 0, 0, 'fir1', 0);
     
     % Save new data set
